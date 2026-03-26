@@ -3,81 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Мой Супер Кликер</title>
+    <title>Clicker Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { 
-            text-align: center; 
-            background: radial-gradient(circle, #2c3e50, #000000); 
-            color: white; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
-            user-select: none;
+            text-align: center; background: #000; color: white; 
+            font-family: sans-serif; display: flex; flex-direction: column;
+            justify-content: center; height: 100vh; margin: 0; user-select: none;
         }
-        #character { 
-            width: 220px; 
-            height: auto;
-            transition: transform 0.05s; 
-            cursor: pointer; 
-            filter: drop-shadow(0 0 15px #3498db);
-        }
-        #character:active { 
-            transform: scale(0.90); 
-        }
-        .stats { 
-            font-size: 28px; 
-            font-weight: bold;
-            margin: 10px 0; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-        .level-text {
-            color: #f1c40f;
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
+        #character { width: 200px; transition: transform 0.05s; cursor: pointer; }
+        #character:active { transform: scale(0.9); }
+        .stats { font-size: 24px; margin: 10px; color: #f1c40f; }
     </style>
 </head>
 <body>
-    <div class="level-text">Уровень: <span id="level">1</span></div>
-    <div class="stats">Счёт: <span id="count">0</span></div>
-    
-    <div style="margin-top: 20px;">
-        <img id="character" src="https://img.icons8.com/color/300/wrench.png" alt="Character">
-    </div>
+    <div class="stats">Монет: <span id="count">0</span></div>
+    <img id="character" src="https://img.icons8.com/color/300/wrench.png">
 
     <script>
         let tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем игру на весь экран Телеграма
-        tg.headerColor = '#000000'; // Цвет шапки
+        tg.expand();
 
         let clicks = 0;
-        let level = 1;
+        const user_id = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 0;
+        
+        // СЮДА НУЖНО БУДЕТ ВСТАВИТЬ ССЫЛКУ ОТ NGROK
+        const SERVER_URL = "http://ТВОЙ_IP_ИЛИ_URL_СЕРВЕРА:8080/add_click";
+
         const charImg = document.getElementById('character');
         const countDisplay = document.getElementById('count');
-        const levelDisplay = document.getElementById('level');
 
-        charImg.onclick = () => {
+        charImg.onclick = async () => {
             clicks++;
             countDisplay.innerText = clicks;
 
-            // Логика перехода на 2 уровень
-            if (clicks >= 10 && level === 1) {
-                level = 2;
-                levelDisplay.innerText = "2 (Мастер)";
-                // Меняем картинку на двигатель
-                charImg.src = "https://img.icons8.com/color/300/engine.png"; 
-                charImg.style.filter = "drop-shadow(0 0 20px #e74c3c)";
-                
-                // Вибрация телефона при достижении уровня
-                if (tg.HapticFeedback) {
-                    tg.HapticFeedback.notificationOccurred('success');
-                }
+            // Отправляем данные на сервер бота в Pydroid
+            try {
+                await fetch(SERVER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: user_id, amount: 1 })
+                });
+            } catch (e) {
+                console.log("Ошибка отправки клика (сервер пока недоступен)");
             }
+            
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         };
     </script>
 </body>
